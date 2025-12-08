@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  # API Gateway (Menggunakan folder 'nginx' dari screenshot)
+  api-gateway:
+    build: ./nginx
+    ports:
+      - "8080:80"
+    networks:
+      - microservices-network
+    depends_on:
+      - auth-service
+      - acad-service
+
+  # Auth Service
+  auth-service:
+    build: ./auth-service
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./auth-service:/app
+      - /app/node_modules
+    networks:
+      - microservices-network
+    environment:
+      - DB_HOST=auth-db
+      # Tambahkan environment variable lain jika diperlukan
+
+  # Auth Database (Port 27017 biasanya untuk MongoDB)
+  auth-db:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    networks:
+      - microservices-network
+    volumes:
+      - auth-data:/data/db
+
+  # Acad Service (Menggunakan folder 'acad-service' dari screenshot)
+  acad-service:
+    build: ./acad-service
+    ports:
+      - "3002:3002" # Asumsi port 3002, sesuaikan dengan aplikasi Anda
+    volumes:
+      - ./acad-service:/app
+      - /app/node_modules
+    networks:
+      - microservices-network
+    depends_on:
+      - acad-db
+
+  # Acad Database (Contoh menggunakan PostgreSQL)
+  acad-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: acad_db
+    ports:
+      - "5432:5432"
+    networks:
+      - microservices-network
+    volumes:
+      - acad-data:/var/lib/postgresql/data
+
+networks:
+  microservices-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+volumes:
+  auth-data:
+  acad-data: # Mengganti order-data/product-data agar sesuai dengan acad-db
