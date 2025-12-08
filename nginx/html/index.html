@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Akademik Microservice</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
+        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
+        h2 { margin-top: 0; color: #333; }
+        input { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
+        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
+        button:hover { background-color: #0056b3; }
+        .result { margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px; white-space: pre-wrap; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align: center;">portal akademik anjayyyyy</h1>
+
+    <div class="container" id="loginSection">
+        <h2>1. login mhs ajg</h2>
+        <input type="email" id="email" placeholder="Email (contoh: test@test.com)">
+        <input type="password" id="password" placeholder="Password">
+        <button onclick="login()">login</button>
+        <div id="loginResult" class="result hidden"></div>
+    </div>
+
+    <div class="container" id="registerSection">
+        <h2>register (opsional)</h2>
+        <input type="text" id="regUsername" placeholder="Username">
+        <input type="email" id="regEmail" placeholder="Email">
+        <input type="password" id="regPassword" placeholder="Password">
+        <button onclick="register()" style="background-color: #28a745;">daftar akun new</button>
+        <div id="regResult" class="result hidden"></div>
+    </div>
+
+    <div class="container">
+        <h2>2. cek IPS</h2>
+        <p>masukkin NIM (contoh: 22001 atau 22002)</p>
+        <input type="text" id="nim" placeholder="Masukkan NIM">
+        <button onclick="cekIPS()" style="background-color: #17a2b8;">hitung IPS</button>
+        <div id="ipsResult" class="result hidden"></div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('loginResult');
+            
+            try {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await response.json();
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerText = JSON.stringify(data, null, 2);
+                if(data.token) {
+                    localStorage.setItem('token', data.token);
+                    alert("Login Berhasil! Token tersimpan.");
+                }
+            } catch (err) {
+                resultDiv.innerText = "Error: " + err.message;
+            }
+        }
+
+        async function register() {
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const resultDiv = document.getElementById('regResult');
+
+            try {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, email, password })
+                });
+                const data = await response.json();
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerText = JSON.stringify(data, null, 2);
+            } catch (err) {
+                resultDiv.innerText = "Error: " + err.message;
+            }
+        }
+
+        async function cekIPS() {
+            const nim = document.getElementById('nim').value;
+            const resultDiv = document.getElementById('ipsResult');
+            
+            if(!nim) { alert("Masukkan NIM dulu!"); return; }
+
+            try {
+                const response = await fetch(`${API_URL}/api/acad/ips/${nim}`);
+                if (!response.ok) throw new Error("Data tidak ditemukan / Error Server");
+                const data = await response.json();
+                
+                // Format tampilan agar rapi
+                let html = `<strong>Hasil Studi NIM: ${nim}</strong><br>`;
+                data.forEach(mhs => {
+                    html += `Nama: ${mhs.nama}<br>`;
+                    html += `Semester: ${mhs.semester}<br>`;
+                    html += `IPS: <strong>${mhs.ips}</strong><br><hr>`;
+                });
+                
+                resultDiv.innerHTML = html;
+                resultDiv.classList.remove('hidden');
+            } catch (err) {
+                resultDiv.classList.remove('hidden');
+                resultDiv.innerText = "Error: " + err.message;
+            }
+        }
+    </script>
+</body>
+</html>

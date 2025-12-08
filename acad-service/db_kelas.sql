@@ -29,7 +29,8 @@ CREATE TABLE bobot_nilai (
 
 INSERT INTO mahasiswa (nim, nama, jurusan, angkatan) VALUES
 ('22001', 'Ahmad Fauzan', 'Sains Data', 2022),
-('22002', 'Nisa Rahma', 'Sains Data', 2022);
+('22002', 'Nisa Rahma', 'Sains Data', 2022),
+('22003', 'Dentar Ababila', 'Sains Wanita', 1967);
 
 INSERT INTO mata_kuliah (kode_mk, nama_mk, sks) VALUES
 ('IF101', 'Pemrograman Dasar', 3),
@@ -43,7 +44,11 @@ INSERT INTO krs (nim, kode_mk, nilai, semester) VALUES
 
 ('22002', 'IF101', 'A', 1),
 ('22002', 'IF102', 'A', 1),
-('22002', 'IF103', 'B+', 1);
+('22002', 'IF103', 'B+', 1),
+
+('22003', 'IF101', 'A', 1),
+('22003', 'IF102', 'B', 1),
+('22003', 'IF103', 'C', 1);
 
 INSERT INTO bobot_nilai VALUES
 ('A', 4.0),
