@@ -3,121 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Auth Service UI</title>
+    <title>auth service</title>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f0f2f5; }
-        .card { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: #1a73e8; }
-        label { display: block; margin: 10px 0 5px; font-weight: bold; }
-        input { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
-        button { wudth: 100%; padding: 10px; border: none; border-radius: 5px; color: white; cursor: pointer; font-weight: bold; }
-        .btn-green { background-color: #28a745; }
-        .btn-blue { background-color: #007bff; }
-        .btn-purple { background-color: #6f42c1; }
-        button:hover { opacity: 0.9; }
-        .result { background: #333; color: #fff; padding: 10px; border-radius: 5px; margin-top: 10px; font-family: monospace; font-size: 0.9em; white-space: pre-wrap; display: none; }
-        hr { border: 0; border-top: 1px solid #eee; margin: 20px 0; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f8f9fa; }
+        .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 10px; margin-top: 0; }
+        p.subtitle { text-align: center; color: #6c757d; margin-bottom: 30px; }
+        
+        label { display: block; margin-bottom: 8px; font-weight: 600; color: #495057; }
+        input { 
+            padding: 12px; 
+            margin-bottom: 20px; 
+            width: 100%; 
+            box-sizing: border-box; 
+            border: 1px solid #ced4da; 
+            border-radius: 6px; 
+            font-size: 16px;
+        }
+        input:focus { outline: none; border-color: #0d6efd; box-shadow: 0 0 0 3px rgba(13,110,253,0.1); }
+
+        button { 
+            padding: 12px; 
+            width: 100%; 
+            border: none; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            font-weight: bold; 
+            font-size: 16px; 
+            background-color: #198754; 
+            color: white; 
+            transition: 0.3s;
+        }
+        button:hover { background-color: #157347; }
+        
+        .alert { padding: 15px; border-radius: 6px; margin-top: 20px; display: none; }
+        .alert-success { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .alert-danger { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+
+        .footer-link { text-align: center; margin-top: 20px; font-size: 0.9em; }
+        a { color: #0d6efd; text-decoration: none; }
+        a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center; color: #333;">🔐 Auth Service Panel</h1>
-    <p style="text-align: center; color: #666;">Backend Interface (Port 3001)</p>
 
-    <div class="card">
-        <h2>Register User</h2>
-        <input type="text" id="regUser" placeholder="Username">
-        <input type="email" id="regEmail" placeholder="Email">
-        <input type="password" id="regPass" placeholder="Password">
-        <button class="btn-green" onclick="doRegister()">Daftar Akun</button>
-        <div id="resRegister" class="result"></div>
-    </div>
+    <div class="container">
+        <h1>reg akun</h1>
+        <p class="subtitle">bikin akun baru buat portal akademik</p>
 
-    <div class="card">
-        <h2>Login</h2>
-        <input type="email" id="loginEmail" placeholder="Email">
-        <input type="password" id="loginPass" placeholder="Password">
-        <button class="btn-blue" onclick="doLogin()">Masuk (Get Token)</button>
-        <div id="resLogin" class="result"></div>
-    </div>
+        <form id="regForm" onsubmit="handleRegister(event)">
+            <label for="username">user</label>
+            <input type="text" id="username" placeholder="contoh: dentar67" required>
 
-    <div class="card">
-        <h2>Cek Token (Verify)</h2>
-        <p style="font-size: 0.8em; color: #666;">Masukkan token JWT di bawah untuk mengecek validitasnya.</p>
-        <textarea id="tokenInput" rows="3" style="width:100%; padding:10px; box-sizing:border-box; border-radius:5px; border:1px solid #ddd;" placeholder="Paste Token JWT disini..."></textarea>
-        <br><br>
-        <button class="btn-purple" onclick="doVerify()">Verifikasi Token</button>
-        <div id="resVerify" class="result"></div>
+            <label for="email">emel</label>
+            <input type="email" id="email" placeholder="contoh: dentar@test.com" required>
+
+            <label for="password">pasword</label>
+            <input type="password" id="password" placeholder="dentar123" required>
+
+            <button type="submit" id="btnSubmit">daftar cuy</button>
+        </form>
+
+        <div id="msgBox" class="alert"></div>
+
+        <div class="footer-link">
+            dah ada akun? <a href="http://localhost:8080">lgsg login kesini wak</a>
+        </div>
     </div>
 
     <script>
-        // Kita menggunakan relative path karena file ini disajikan langsung oleh server.js
-        const API_BASE = '/api/auth';
-
-        async function doRegister() {
-            const username = document.getElementById('regUser').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPass').value;
+        async function handleRegister(e) {
+            e.preventDefault();
             
-            callApi(`${API_BASE}/register`, 'POST', { username, email, password }, 'resRegister');
-        }
-
-        async function doLogin() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPass').value;
+            const btn = document.getElementById('btnSubmit');
+            const msgBox = document.getElementById('msgBox');
             
-            const data = await callApi(`${API_BASE}/login`, 'POST', { email, password }, 'resLogin');
-            if(data && data.token) {
-                document.getElementById('tokenInput').value = data.token;
-            }
-        }
+            // Disable button loading state
+            btn.disabled = true;
+            btn.innerText = "Memproses...";
+            msgBox.style.display = 'none';
 
-        async function doVerify() {
-            const token = document.getElementById('tokenInput').value;
-            if(!token) return alert('Token kosong!');
-
-            const output = document.getElementById('resVerify');
-            output.style.display = 'block';
-            output.innerText = 'Loading...';
+            const payload = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
 
             try {
-                const res = await fetch(`${API_BASE}/verify`, {
+                // We use relative path because this file is SERVED by the Auth Service itself
+                const response = await fetch('/api/auth/register', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}` 
-                    }
-                });
-                const data = await res.json();
-                output.innerText = JSON.stringify(data, null, 2);
-                output.style.backgroundColor = res.ok ? '#28a745' : '#dc3545';
-            } catch (err) {
-                output.innerText = err.message;
-            }
-        }
-
-        async function callApi(url, method, body, resultId) {
-            const output = document.getElementById(resultId);
-            output.style.display = 'block';
-            output.innerText = 'Loading...';
-            output.style.backgroundColor = '#333';
-
-            try {
-                const res = await fetch(url, {
-                    method: method,
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
+                    body: JSON.stringify(payload)
                 });
-                const data = await res.json();
-                output.innerText = JSON.stringify(data, null, 2);
-                
-                // Ubah warna background jika sukses/gagal
-                if(res.ok) output.style.backgroundColor = '#333'; 
-                else output.style.backgroundColor = '#dc3545'; // Merah jika error
 
-                return data;
+                const data = await response.json();
+
+                if (response.ok) {
+                    msgBox.className = "alert alert-success";
+                    msgBox.innerHTML = `<strong>berhasil,</strong> akun ${data.user.username} telah dibuat.<br>silakan login di portal utama.`;
+                    document.getElementById('regForm').reset();
+                } else {
+                    throw new Error(data.error || "gagal daftar.");
+                }
             } catch (err) {
-                output.innerText = "Error: " + err.message;
-                output.style.backgroundColor = '#dc3545';
+                msgBox.className = "alert alert-danger";
+                msgBox.innerText = "Error: " + err.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "daftar skrg";
+                msgBox.style.display = 'block';
             }
         }
     </script>

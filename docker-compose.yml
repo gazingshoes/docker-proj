@@ -94,6 +94,7 @@ services:
       - DB_NAME=acad_db
       - DB_USER=user
       - DB_PASSWORD=password
+      - JWT_SECRET=rahasia_super_aman_123
 
   # --- ACAD DATABASE ---
   acad-db:

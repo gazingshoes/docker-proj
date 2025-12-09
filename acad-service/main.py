@@ -1,14 +1,14 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import psycopg2
 import os
+import jwt  # Needs pyjwt installed
 from datetime import datetime
 from contextlib import contextmanager
 
 app = FastAPI(title="Academic Service", version="1.0.0")
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -17,7 +17,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Database configuration
+# Configs
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'port': os.getenv('DB_PORT', '5432'),
@@ -25,8 +25,8 @@ DB_CONFIG = {
     'user': os.getenv('DB_USER', 'user'),
     'password': os.getenv('DB_PASSWORD', 'password')
 }
+JWT_SECRET = os.getenv("JWT_SECRET", "secret")
 
-# Database connection pool
 @contextmanager
 def get_db_connection():
     conn = psycopg2.connect(**DB_CONFIG)
@@ -39,6 +39,18 @@ def get_db_connection():
     finally:
         conn.close()
 
+# --- SECURITY: Verify Token Dependency ---
+async def verify_token(authorization: str = Header(None)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization Header")
+    
+    try:
+        token = authorization.split(" ")[1] # Bearer <token>
+        payload = jwt.decode(token, JWT_SECRET, algorithms=["HS256"])
+        return payload
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="Invalid or Expired Token")
+
 @app.on_event("startup")
 async def startup_event():
     try:
@@ -47,68 +59,77 @@ async def startup_event():
     except Exception as e:
         print(f"Acad Service: PostgreSQL connection error: {e}")
 
-# Health check
 @app.get("/health")
 async def health_check():
-    return {
-        "status": "Acad Service is running",
-        "timestamp": datetime.now().isoformat()
-    }
+    return {"status": "Acad Service is running", "timestamp": datetime.now().isoformat()}
 
-# 1. Endpoint Ambil Data Mahasiswa (Dasar)
-@app.get("/api/acad/mahasiswa")
-async def get_mahasiswas():
-    try:
-        with get_db_connection() as conn:
-            cursor = conn.cursor()
-            cursor.execute("SELECT nim, nama, jurusan, angkatan FROM mahasiswa")
-            rows = cursor.fetchall()
-            return [{"nim": r[0], "nama": r[1], "jurusan": r[2], "angkatan": r[3]} for r in rows]
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-# 2. Endpoint Hitung IPS (TUGAS WAJIB UAS)
+# --- UPDATED ENDPOINT: Detailed IPS with Auth ---
 @app.get("/api/acad/ips/{nim}")
-async def get_ips_mahasiswa(nim: str):
+async def get_ips_detail(nim: str, user=Depends(verify_token)):
     try:
         with get_db_connection() as conn:
             cursor = conn.cursor()
             
-            # Query Join 4 Tabel: Mahasiswa -> KRS -> Mata Kuliah -> Bobot
+            # 1. Get Student Info
+            cursor.execute("SELECT nim, nama, jurusan, angkatan FROM mahasiswa WHERE nim = %s", (nim,))
+            student = cursor.fetchone()
+            
+            if not student:
+                raise HTTPException(status_code=404, detail="Mahasiswa tidak ditemukan")
+
+            # 2. Get Detailed Transcript
             query = """
             SELECT 
-                m.nim, 
-                m.nama, 
-                k.semester,
-                SUM(mk.sks * bn.bobot) as total_bobot,
-                SUM(mk.sks) as total_sks
-            FROM mahasiswa m
-            JOIN krs k ON m.nim = k.nim
+                mk.kode_mk,
+                mk.nama_mk,
+                mk.sks,
+                k.nilai,
+                bn.bobot,
+                k.semester
+            FROM krs k
             JOIN mata_kuliah mk ON k.kode_mk = mk.kode_mk
             JOIN bobot_nilai bn ON k.nilai = bn.nilai
-            WHERE m.nim = %s
-            GROUP BY m.nim, m.nama, k.semester
+            WHERE k.nim = %s
+            ORDER BY k.semester ASC, mk.nama_mk ASC
             """
-            
             cursor.execute(query, (nim,))
             rows = cursor.fetchall()
             
-            if not rows:
-                raise HTTPException(status_code=404, detail="Data nilai tidak ditemukan untuk NIM tersebut")
-
-            hasil_ips = []
-            for row in rows:
-                # Rumus IPS: Total (SKS * Bobot) / Total SKS
-                ips = row[3] / row[4] if row[4] > 0 else 0
-                hasil_ips.append({
-                    "nim": row[0],
-                    "nama": row[1],
-                    "semester": row[2],
-                    "ips": round(ips, 2)
-                })
+            # 3. Calculate Logic in Python
+            transcript = []
+            total_sks = 0
+            total_points = 0
+            
+            for r in rows:
+                sks = r[2]
+                bobot = r[4]
                 
-            return hasil_ips
+                total_sks += sks
+                total_points += (sks * bobot)
+                
+                transcript.append({
+                    "kode": r[0],
+                    "mata_kuliah": r[1],
+                    "sks": sks,
+                    "nilai": r[3],
+                    "bobot": bobot,
+                    "semester": r[5]
+                })
 
+            ips = round(total_points / total_sks, 2) if total_sks > 0 else 0.0
+
+            return {
+                "nim": student[0],
+                "nama": student[1],
+                "prodi": student[2],
+                "angkatan": student[3],
+                "total_sks": total_sks,
+                "ips": ips,
+                "transcript": transcript
+            }
+
+    except HTTPException as he:
+        raise he
     except Exception as e:
         print(f"Error: {e}")
         raise HTTPException(status_code=500, detail=str(e))

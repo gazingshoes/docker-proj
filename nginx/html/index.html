@@ -3,44 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Akademik Microservice</title>
+    <title>Sistem Akademik Dentar</title>
     <style>
-        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; background-color: #f4f4f4; }
-        .container { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; }
-        h2 { margin-top: 0; color: #333; }
-        input { padding: 8px; margin: 5px 0; width: 100%; box-sizing: border-box; }
-        button { padding: 10px; background-color: #007bff; color: white; border: none; cursor: pointer; width: 100%; margin-top: 10px; }
-        button:hover { background-color: #0056b3; }
-        .result { margin-top: 15px; padding: 10px; background: #e9ecef; border-radius: 4px; white-space: pre-wrap; }
+        body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
+        h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
+        h2 { color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        input { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
+        button { padding: 12px; width: 100%; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
+        .btn-primary { background-color: #0d6efd; color: white; }
+        .btn-primary:hover { background-color: #0b5ed7; }
+        .btn-success { background-color: #198754; color: white; }
+        .btn-success:hover { background-color: #157347; }
+        .btn-danger { background-color: #dc3545; color: white; width: auto; padding: 8px 20px; float: right; }
         .hidden { display: none; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #dee2e6; padding: 12px; text-align: left; }
+        th { background-color: #f8f9fa; color: #212529; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+        .badge { background: #e9ecef; padding: 5px 10px; border-radius: 20px; font-size: 0.9em; font-weight: bold; color: #495057; }
+        .ips-score { font-size: 2.5em; color: #198754; font-weight: bold; }
+        #currentUser { font-weight: bold; color: #0d6efd; }
     </style>
 </head>
 <body>
-    <h1 style="text-align: center;">portal akademik anjayyyyy</h1>
+    <h1>portal akademik</h1>
 
     <div class="container" id="loginSection">
-        <h2>1. login mhs ajg</h2>
+        <h2>login mhs</h2>
         <input type="email" id="email" placeholder="Email (contoh: test@test.com)">
         <input type="password" id="password" placeholder="Password">
-        <button onclick="login()">login</button>
-        <div id="loginResult" class="result hidden"></div>
+        <button class="btn-primary" onclick="login()">masuy sistem</button>
+        <p id="loginError" style="color: red; display: none; margin-top: 10px;"></p>
     </div>
 
-    <div class="container">
-        <h2>2. cek IPS</h2>
-        <p>masukkin NIM (contoh: 22001 atau 22002)</p>
-        <input type="text" id="nim" placeholder="Masukkan NIM">
-        <button onclick="cekIPS()" style="background-color: #17a2b8;">hitung IPS</button>
-        <div id="ipsResult" class="result hidden"></div>
+    <div class="container hidden" id="dashboardSection">
+        <div style="overflow: hidden; margin-bottom: 20px;">
+            <h2 style="float: left; border: none;">
+                halo, <span id="currentUser">loading...</span>
+            </h2>
+            <button class="btn-danger" onclick="logout()">logout</button>
+        </div>
+
+        <div style="background: #e7f1ff; padding: 20px; border-radius: 8px;">
+            <label style="font-weight: bold;">cari detail IPS:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="nimInput" placeholder="masukkin NIM (contoh: 22001)" style="margin: 0;">
+                <button class="btn-success" onclick="fetchDetailedIPS()" style="width: auto; margin: 0; padding: 0 30px;">cekidot</button>
+            </div>
+        </div>
+
+        <div id="resultArea" class="hidden" style="margin-top: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <div>
+                    <h3 style="margin: 0; color: #2c3e50;" id="resNama"></h3>
+                    <p style="margin: 5px 0; color: #666;">NIM: <span id="resNim"></span> | prodi: <span id="resProdi"></span></p>
+                    <span class="badge" id="resAngkatan"></span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="display: block; font-size: 0.9em; color: #666;">indeks prestasi semester</span>
+                    <span class="ips-score" id="resIps">0.00</span>
+                </div>
+            </div>
+
+            <table>
+                <thead>
+                    <tr><th>No</th><th>Kode</th><th>Mata Kuliah</th><th>Sem</th><th>SKS</th><th>Nilai</th><th>Bobot</th></tr>
+                </thead>
+                <tbody id="transcriptBody"></tbody>
+            </table>
+        </div>
     </div>
 
     <script>
         const API_URL = 'http://localhost:8080';
 
+        // ON LOAD: Verify the token immediately
+        if(localStorage.getItem('token')) {
+            verifySession();
+        }
+
+        async function verifySession() {
+            const token = localStorage.getItem('token');
+            try {
+                // Call Auth Service to check who owns this token
+                const response = await fetch(`${API_URL}/api/auth/verify`, {
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    // SUCCESS: Show Dashboard with Username
+                    document.getElementById('currentUser').innerText = data.user.username;
+                    showDashboard();
+                } else {
+                    // FAIL: Token is garbage. Logout.
+                    console.warn("Session invalid. Logging out.");
+                    logout();
+                }
+            } catch (err) {
+                console.error("Auth check failed:", err);
+                // If backend is down, we let them stay on login screen
+            }
+        }
+
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const resultDiv = document.getElementById('loginResult');
+            const errorMsg = document.getElementById('loginError');
             
             try {
                 const response = await fetch(`${API_URL}/api/auth/login`, {
@@ -49,62 +123,87 @@
                     body: JSON.stringify({ email, password })
                 });
                 const data = await response.json();
-                resultDiv.classList.remove('hidden');
-                resultDiv.innerText = JSON.stringify(data, null, 2);
-                if(data.token) {
+                
+                if (response.ok && data.token) {
                     localStorage.setItem('token', data.token);
-                    alert("Login Berhasil! Token tersimpan.");
+                    verifySession(); // Validate and show dashboard
+                } else {
+                    errorMsg.innerText = data.error || "Login Gagal";
+                    errorMsg.style.display = 'block';
                 }
             } catch (err) {
-                resultDiv.innerText = "Error: " + err.message;
+                errorMsg.innerText = "Gagal menghubungi server Auth.";
+                errorMsg.style.display = 'block';
             }
         }
 
-        async function register() {
-            const username = document.getElementById('regUsername').value;
-            const email = document.getElementById('regEmail').value;
-            const password = document.getElementById('regPassword').value;
-            const resultDiv = document.getElementById('regResult');
-
-            try {
-                const response = await fetch(`${API_URL}/api/auth/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, email, password })
-                });
-                const data = await response.json();
-                resultDiv.classList.remove('hidden');
-                resultDiv.innerText = JSON.stringify(data, null, 2);
-            } catch (err) {
-                resultDiv.innerText = "Error: " + err.message;
-            }
+        function logout() {
+            localStorage.removeItem('token');
+            location.reload();
         }
 
-        async function cekIPS() {
-            const nim = document.getElementById('nim').value;
-            const resultDiv = document.getElementById('ipsResult');
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+        }
+
+        async function fetchDetailedIPS() {
+            const nim = document.getElementById('nimInput').value;
+            if(!nim) return alert("NIM tidak boleh kosong");
+
+            const token = localStorage.getItem('token');
             
-            if(!nim) { alert("Masukkan NIM dulu!"); return; }
-
             try {
-                const response = await fetch(`${API_URL}/api/acad/ips/${nim}`);
-                if (!response.ok) throw new Error("Data tidak ditemukan / Error Server");
-                const data = await response.json();
-                
-                // Format tampilan agar rapi
-                let html = `<strong>Hasil Studi NIM: ${nim}</strong><br>`;
-                data.forEach(mhs => {
-                    html += `Nama: ${mhs.nama}<br>`;
-                    html += `Semester: ${mhs.semester}<br>`;
-                    html += `IPS: <strong>${mhs.ips}</strong><br><hr>`;
+                const response = await fetch(`${API_URL}/api/acad/ips/${nim}`, {
+                    method: 'GET',
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                
-                resultDiv.innerHTML = html;
-                resultDiv.classList.remove('hidden');
+
+                // SPECIFIC ERROR HANDLING
+                if (response.status === 401) {
+                    alert("Sesi Anda habis. Silakan login ulang.");
+                    logout();
+                    return;
+                }
+                if (response.status === 502) {
+                    alert("Error 502: Acad Service belum siap/crash. Cek terminal Docker Anda!");
+                    return;
+                }
+                if (!response.ok) {
+                    const errData = await response.json();
+                    throw new Error(errData.detail || `Error ${response.status}`);
+                }
+
+                const data = await response.json();
+                renderResult(data);
+
             } catch (err) {
-                resultDiv.classList.remove('hidden');
-                resultDiv.innerText = "Error: " + err.message;
+                alert("Gagal mengambil data: " + err.message);
             }
+        }
+
+        function renderResult(data) {
+            document.getElementById('resultArea').classList.remove('hidden');
+            document.getElementById('resNama').innerText = data.nama;
+            document.getElementById('resNim').innerText = data.nim;
+            document.getElementById('resProdi').innerText = data.prodi || "-";
+            document.getElementById('resAngkatan').innerText = "Angkatan " + data.angkatan;
+            document.getElementById('resIps').innerText = data.ips;
+
+            const tbody = document.getElementById('transcriptBody');
+            tbody.innerHTML = '';
+            data.transcript.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.kode}</td>
+                        <td>${item.mata_kuliah}</td>
+                        <td>${item.semester}</td>
+                        <td>${item.sks}</td>
+                        <td style="font-weight:bold">${item.nilai}</td>
+                        <td>${item.bobot}</td>
+                    </tr>`;
+            });
         }
     </script>
 </body>
