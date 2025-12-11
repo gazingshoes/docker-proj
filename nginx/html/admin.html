@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dasbor atmin</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        h1 { color: #2c3e50; margin: 0; }
+        h3 { border-bottom: 2px solid #eee; padding-bottom: 10px; color: #495057; margin-top: 0; }
+        
+        .grid-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        input, select { padding: 10px; border: 1px solid #ced4da; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        
+        button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; color: white; }
+        .btn-save { background-color: #198754; width: 100%; }
+        .btn-save:hover { background-color: #157347; }
+        .btn-logout { background-color: #dc3545; }
+        
+        .nav-tabs { display: flex; gap: 10px; margin-bottom: 20px; }
+        .tab-btn { background: #e9ecef; color: #333; flex: 1; text-align: center; padding: 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        .tab-btn.active { background: #0d6efd; color: white; font-weight: bold; }
+        .tab-btn:hover:not(.active) { background: #dee2e6; }
+        
+        .hidden { display: none; }
+
+        /* TABLE STYLES */
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; font-size: 0.9em; }
+        th, td { border: 1px solid #dee2e6; padding: 10px; text-align: left; }
+        th { background-color: #f1f3f5; color: #495057; }
+        tr:nth-child(even) { background-color: #f8f9fa; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>dasbor atmin</h1>
+        <div>
+            <span id="adminName" style="margin-right: 15px; font-weight: bold; color: #0d6efd;">Admin</span>
+            <button class="btn-logout" onclick="logout()">logout</button>
+        </div>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="tab-btn active" onclick="switchTab('mhs')">mhs</div>
+        <div class="tab-btn" onclick="switchTab('mk')">mk ketika</div>
+        <div class="tab-btn" onclick="switchTab('krs')">input krs</div>
+    </div>
+
+    <div id="tab-mhs" class="tab-content">
+        <div class="card">
+            <h3>tambah mhs</h3>
+            <form onsubmit="submitData(event, 'mahasiswa')">
+                <div class="grid-form">
+                    <input id="mhs_nim" placeholder="NIM (contoh: 22005)" required>
+                    <input id="mhs_nama" placeholder="Nama Lengkap" required>
+                    <input id="mhs_jurusan" placeholder="Jurusan" value="Sains Data" required>
+                    <input id="mhs_angkatan" type="number" placeholder="Angkatan (2025)" required>
+                </div>
+                <button type="submit" class="btn-save">simpan</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>daftar mhs</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr><th>NIM</th><th>nama</th><th>jurusan</th><th>angkatan</th></tr></thead>
+                    <tbody id="mhsTableBody"><tr><td colspan="4">loding...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-mk" class="tab-content hidden">
+        <div class="card">
+            <h3>tambah mk</h3>
+            <form onsubmit="submitData(event, 'matakuliah')">
+                <div class="grid-form">
+                    <input id="mk_kode" placeholder="Kode MK (contoh: CS201)" required>
+                    <input id="mk_nama" placeholder="Nama Mata Kuliah" required>
+                    <input id="mk_sks" type="number" placeholder="SKS" required>
+                </div>
+                <button type="submit" class="btn-save">simpan</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h3>daftar mk</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead><tr><th>kode mk</th><th>nama mk</th><th>SKS</th></tr></thead>
+                    <tbody id="mkTableBody"><tr><td colspan="3">loding...</td></tr></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-krs" class="tab-content hidden">
+        <div class="card">
+            <h3>input nilai (krs)</h3>
+            <form onsubmit="submitData(event, 'krs')">
+                <div class="grid-form">
+                    <input id="krs_nim" placeholder="NIM Mahasiswa" required>
+                    <input id="krs_kode" placeholder="Kode MK" required>
+                    <input id="krs_sem" type="number" placeholder="Semester" required>
+                    <select id="krs_nilai" required>
+                        <option value="">piliy nilai...</option>
+                        <option value="A">A</option><option value="A-">A-</option>
+                        <option value="B+">B+</option><option value="B">B</option>
+                        <option value="C">C</option><option value="D">D</option>
+                        <option value="E">E</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-save">simpan krs</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:8080/api/acad';
+        const token = localStorage.getItem('token');
+
+        // Check Auth
+        if(!token) window.location.href = 'index.html';
+
+        // Load Initial Data
+        loadMahasiswa();
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`tab-${tab}`).classList.remove('hidden');
+            event.target.classList.add('active');
+
+            // Load data when tab is clicked
+            if(tab === 'mhs') loadMahasiswa();
+            if(tab === 'mk') loadMatakuliah();
+        }
+
+        async function loadMahasiswa() {
+            try {
+                const res = await fetch(`${API_URL}/mahasiswa`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const tbody = document.getElementById('mhsTableBody');
+                tbody.innerHTML = '';
+                
+                if(data.length === 0) tbody.innerHTML = '<tr><td colspan="4">Belum ada data</td></tr>';
+
+                data.forEach(m => {
+                    tbody.innerHTML += `<tr><td>${m.nim}</td><td>${m.nama}</td><td>${m.jurusan}</td><td>${m.angkatan}</td></tr>`;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function loadMatakuliah() {
+            try {
+                const res = await fetch(`${API_URL}/matakuliah`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const data = await res.json();
+                const tbody = document.getElementById('mkTableBody');
+                tbody.innerHTML = '';
+                
+                if(data.length === 0) tbody.innerHTML = '<tr><td colspan="3">Belum ada data</td></tr>';
+
+                data.forEach(mk => {
+                    tbody.innerHTML += `<tr><td>${mk.kode_mk}</td><td>${mk.nama_mk}</td><td>${mk.sks}</td></tr>`;
+                });
+            } catch(e) { console.error(e); }
+        }
+
+        async function submitData(e, type) {
+            e.preventDefault();
+            let payload = {};
+            
+            // Collect Data
+            if(type === 'mahasiswa') {
+                payload = {
+                    nim: document.getElementById('mhs_nim').value,
+                    nama: document.getElementById('mhs_nama').value,
+                    jurusan: document.getElementById('mhs_jurusan').value,
+                    angkatan: parseInt(document.getElementById('mhs_angkatan').value)
+                };
+            } else if(type === 'matakuliah') {
+                payload = {
+                    kode_mk: document.getElementById('mk_kode').value,
+                    nama_mk: document.getElementById('mk_nama').value,
+                    sks: parseInt(document.getElementById('mk_sks').value)
+                };
+            } else if(type === 'krs') {
+                payload = {
+                    nim: document.getElementById('krs_nim').value,
+                    kode_mk: document.getElementById('krs_kode').value,
+                    semester: parseInt(document.getElementById('krs_sem').value),
+                    nilai: document.getElementById('krs_nilai').value
+                };
+            }
+
+            // Send to Backend
+            try {
+                const res = await fetch(`${API_URL}/${type}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+                if(res.ok) {
+                    alert("Berhasil!");
+                    e.target.reset();
+                    // Reload tables to show new data
+                    if(type === 'mahasiswa') loadMahasiswa();
+                    if(type === 'matakuliah') loadMatakuliah();
+                } else {
+                    alert("Gagal: " + data.detail);
+                }
+            } catch(err) {
+                alert("Error: " + err.message);
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Akademik Dentar</title>
+    <title>sistem akademiy</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
         h1 { color: #2c3e50; text-align: center; margin-bottom: 30px; }
         h2 { color: #34495e; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        input { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
+        input[type="email"], input[type="password"], input[type="text"] { padding: 12px; margin: 8px 0; width: 100%; box-sizing: border-box; border: 1px solid #ddd; border-radius: 6px; }
         button { padding: 12px; width: 100%; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; transition: 0.3s; }
         .btn-primary { background-color: #0d6efd; color: white; }
         .btn-primary:hover { background-color: #0b5ed7; }
@@ -27,28 +27,34 @@
     </style>
 </head>
 <body>
-    <h1>portal akademik</h1>
+    <h1>portal akademiy</h1>
 
     <div class="container" id="loginSection">
-        <h2>login mhs</h2>
+        <h2>login mhs / atmin</h2>
         <input type="email" id="email" placeholder="Email (contoh: test@test.com)">
         <input type="password" id="password" placeholder="Password">
-        <button class="btn-primary" onclick="login()">masuy sistem</button>
+        
+        <div style="margin: 15px 0; display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="isAdmin" style="width: auto; margin: 0; transform: scale(1.2);">
+            <label for="isAdmin" style="cursor: pointer; user-select: none;">login sbg atmin</label>
+        </div>
+
+        <button class="btn-primary" onclick="login()">msk sistem</button>
         <p id="loginError" style="color: red; display: none; margin-top: 10px;"></p>
     </div>
 
     <div class="container hidden" id="dashboardSection">
         <div style="overflow: hidden; margin-bottom: 20px;">
             <h2 style="float: left; border: none;">
-                halo, <span id="currentUser">loading...</span>
+                helo, <span id="currentUser">loding...</span>
             </h2>
-            <button class="btn-danger" onclick="logout()">logout</button>
+            <button class="btn-danger" onclick="logout()">Logout</button>
         </div>
 
         <div style="background: #e7f1ff; padding: 20px; border-radius: 8px;">
-            <label style="font-weight: bold;">cari detail IPS:</label>
+            <label style="font-weight: bold;">cari IPS:</label>
             <div style="display: flex; gap: 10px;">
-                <input type="text" id="nimInput" placeholder="masukkin NIM (contoh: 22001)" style="margin: 0;">
+                <input type="text" id="nimInput" placeholder="Masukkin NIM (contoh: 22001)" style="margin: 0;">
                 <button class="btn-success" onclick="fetchDetailedIPS()" style="width: auto; margin: 0; padding: 0 30px;">cekidot</button>
             </div>
         </div>
@@ -57,7 +63,7 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                     <h3 style="margin: 0; color: #2c3e50;" id="resNama"></h3>
-                    <p style="margin: 5px 0; color: #666;">NIM: <span id="resNim"></span> | prodi: <span id="resProdi"></span></p>
+                    <p style="margin: 5px 0; color: #666;">NIM: <span id="resNim"></span> | prodiy: <span id="resProdi"></span></p>
                     <span class="badge" id="resAngkatan"></span>
                 </div>
                 <div style="text-align: right;">
@@ -80,13 +86,15 @@
 
         // ON LOAD: Verify the token immediately
         if(localStorage.getItem('token')) {
+            // If already on index.html but logged in, verify session
+            // Note: Admins should ideally be redirected if they land here, 
+            // but for simplicity, we verify as normal user or they can click logout.
             verifySession();
         }
 
         async function verifySession() {
             const token = localStorage.getItem('token');
             try {
-                // Call Auth Service to check who owns this token
                 const response = await fetch(`${API_URL}/api/auth/verify`, {
                     method: 'POST',
                     headers: { 
@@ -97,23 +105,21 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    // SUCCESS: Show Dashboard with Username
                     document.getElementById('currentUser').innerText = data.user.username;
                     showDashboard();
                 } else {
-                    // FAIL: Token is garbage. Logout.
                     console.warn("Session invalid. Logging out.");
                     logout();
                 }
             } catch (err) {
                 console.error("Auth check failed:", err);
-                // If backend is down, we let them stay on login screen
             }
         }
 
         async function login() {
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
+            const isAdmin = document.getElementById('isAdmin').checked; // GET CHECKBOX STATUS
             const errorMsg = document.getElementById('loginError');
             
             try {
@@ -126,7 +132,16 @@
                 
                 if (response.ok && data.token) {
                     localStorage.setItem('token', data.token);
-                    verifySession(); // Validate and show dashboard
+                    
+                    // --- REDIRECT LOGIC ---
+                    if (isAdmin) {
+                        // If Admin checkbox is checked, go to admin page
+                        window.location.href = 'admin.html';
+                    } else {
+                        // If not, verify session and show student dashboard
+                        verifySession(); 
+                    }
+                    
                 } else {
                     errorMsg.innerText = data.error || "Login Gagal";
                     errorMsg.style.display = 'block';
@@ -159,7 +174,6 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                // SPECIFIC ERROR HANDLING
                 if (response.status === 401) {
                     alert("Sesi Anda habis. Silakan login ulang.");
                     logout();
