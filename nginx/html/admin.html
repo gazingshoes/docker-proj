@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>dasbor atmin</title>
+    <title>Dashboard Admin</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
         .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
@@ -36,22 +36,22 @@
 <body>
 
     <div class="header">
-        <h1>dasbor atmin</h1>
+        <h1>Dashboard Admin</h1>
         <div>
             <span id="adminName" style="margin-right: 15px; font-weight: bold; color: #0d6efd;">Admin</span>
-            <button class="btn-logout" onclick="logout()">logout</button>
+            <button class="btn-logout" onclick="logout()">Logout</button>
         </div>
     </div>
 
     <div class="nav-tabs">
-        <div class="tab-btn active" onclick="switchTab('mhs')">mhs</div>
-        <div class="tab-btn" onclick="switchTab('mk')">mk ketika</div>
-        <div class="tab-btn" onclick="switchTab('krs')">input krs</div>
+        <div class="tab-btn active" onclick="switchTab('mhs')">Mahasiswa</div>
+        <div class="tab-btn" onclick="switchTab('mk')">Mata Kuliah</div>
+        <div class="tab-btn" onclick="switchTab('krs')">Input KRS</div>
     </div>
 
     <div id="tab-mhs" class="tab-content">
         <div class="card">
-            <h3>tambah mhs</h3>
+            <h3>Tambah Mahasiswa</h3>
             <form onsubmit="submitData(event, 'mahasiswa')">
                 <div class="grid-form">
                     <input id="mhs_nim" placeholder="NIM (contoh: 22005)" required>
@@ -59,16 +59,16 @@
                     <input id="mhs_jurusan" placeholder="Jurusan" value="Sains Data" required>
                     <input id="mhs_angkatan" type="number" placeholder="Angkatan (2025)" required>
                 </div>
-                <button type="submit" class="btn-save">simpan</button>
+                <button type="submit" class="btn-save">Simpan</button>
             </form>
         </div>
 
         <div class="card">
-            <h3>daftar mhs</h3>
+            <h3>Daftar Mahasiswa</h3>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>NIM</th><th>nama</th><th>jurusan</th><th>angkatan</th></tr></thead>
-                    <tbody id="mhsTableBody"><tr><td colspan="4">loding...</td></tr></tbody>
+                    <thead><tr><th>NIM</th><th>Nama</th><th>Jurusan</th><th>Angkatan</th></tr></thead>
+                    <tbody id="mhsTableBody"><tr><td colspan="4">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -76,23 +76,23 @@
 
     <div id="tab-mk" class="tab-content hidden">
         <div class="card">
-            <h3>tambah mk</h3>
+            <h3>Tambah MK</h3>
             <form onsubmit="submitData(event, 'matakuliah')">
                 <div class="grid-form">
                     <input id="mk_kode" placeholder="Kode MK (contoh: CS201)" required>
                     <input id="mk_nama" placeholder="Nama Mata Kuliah" required>
                     <input id="mk_sks" type="number" placeholder="SKS" required>
                 </div>
-                <button type="submit" class="btn-save">simpan</button>
+                <button type="submit" class="btn-save">Simpan</button>
             </form>
         </div>
 
         <div class="card">
-            <h3>daftar mk</h3>
+            <h3>List MK</h3>
             <div style="overflow-x: auto;">
                 <table>
-                    <thead><tr><th>kode mk</th><th>nama mk</th><th>SKS</th></tr></thead>
-                    <tbody id="mkTableBody"><tr><td colspan="3">loding...</td></tr></tbody>
+                    <thead><tr><th>Kode MK</th><th>Nama MK</th><th>SKS</th></tr></thead>
+                    <tbody id="mkTableBody"><tr><td colspan="3">Loading...</td></tr></tbody>
                 </table>
             </div>
         </div>
@@ -100,21 +100,21 @@
 
     <div id="tab-krs" class="tab-content hidden">
         <div class="card">
-            <h3>input nilai (krs)</h3>
+            <h3>Input Nilai (KRS)</h3>
             <form onsubmit="submitData(event, 'krs')">
                 <div class="grid-form">
                     <input id="krs_nim" placeholder="NIM Mahasiswa" required>
                     <input id="krs_kode" placeholder="Kode MK" required>
                     <input id="krs_sem" type="number" placeholder="Semester" required>
                     <select id="krs_nilai" required>
-                        <option value="">piliy nilai...</option>
+                        <option value="">Pilih nilai...</option>
                         <option value="A">A</option><option value="A-">A-</option>
                         <option value="B+">B+</option><option value="B">B</option>
                         <option value="C">C</option><option value="D">D</option>
                         <option value="E">E</option>
                     </select>
                 </div>
-                <button type="submit" class="btn-save">simpan krs</button>
+                <button type="submit" class="btn-save">Simpan </button>
             </form>
         </div>
     </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>sistem akademiy</title>
+    <title>Sistem Akademik</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; background-color: #f8f9fa; }
         .container { background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
@@ -27,35 +27,35 @@
     </style>
 </head>
 <body>
-    <h1>portal akademiy</h1>
+    <h1>Portal Akademik</h1>
 
     <div class="container" id="loginSection">
-        <h2>login mhs / atmin</h2>
+        <h2>Login User / Admin</h2>
         <input type="email" id="email" placeholder="Email (contoh: test@test.com)">
         <input type="password" id="password" placeholder="Password">
         
         <div style="margin: 15px 0; display: flex; align-items: center; gap: 10px;">
             <input type="checkbox" id="isAdmin" style="width: auto; margin: 0; transform: scale(1.2);">
-            <label for="isAdmin" style="cursor: pointer; user-select: none;">login sbg atmin</label>
+            <label for="isAdmin" style="cursor: pointer; user-select: none;">Login Sebagai Admin</label>
         </div>
 
-        <button class="btn-primary" onclick="login()">msk sistem</button>
+        <button class="btn-primary" onclick="login()">Masuk Sistem</button>
         <p id="loginError" style="color: red; display: none; margin-top: 10px;"></p>
     </div>
 
     <div class="container hidden" id="dashboardSection">
         <div style="overflow: hidden; margin-bottom: 20px;">
             <h2 style="float: left; border: none;">
-                helo, <span id="currentUser">loding...</span>
+                Halo, <span id="currentUser">loading...</span>
             </h2>
             <button class="btn-danger" onclick="logout()">Logout</button>
         </div>
 
         <div style="background: #e7f1ff; padding: 20px; border-radius: 8px;">
-            <label style="font-weight: bold;">cari IPS:</label>
+            <label style="font-weight: bold;">Cari IPS:</label>
             <div style="display: flex; gap: 10px;">
                 <input type="text" id="nimInput" placeholder="Masukkin NIM (contoh: 22001)" style="margin: 0;">
-                <button class="btn-success" onclick="fetchDetailedIPS()" style="width: auto; margin: 0; padding: 0 30px;">cekidot</button>
+                <button class="btn-success" onclick="fetchDetailedIPS()" style="width: auto; margin: 0; padding: 0 30px;">Cek</button>
             </div>
         </div>
 
@@ -63,11 +63,11 @@
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <div>
                     <h3 style="margin: 0; color: #2c3e50;" id="resNama"></h3>
-                    <p style="margin: 5px 0; color: #666;">NIM: <span id="resNim"></span> | prodiy: <span id="resProdi"></span></p>
+                    <p style="margin: 5px 0; color: #666;">NIM: <span id="resNim"></span> | Prodi: <span id="resProdi"></span></p>
                     <span class="badge" id="resAngkatan"></span>
                 </div>
                 <div style="text-align: right;">
-                    <span style="display: block; font-size: 0.9em; color: #666;">indeks prestasi semester</span>
+                    <span style="display: block; font-size: 0.9em; color: #666;">Indeks Prestasi Semester</span>
                     <span class="ips-score" id="resIps">0.00</span>
                 </div>
             </div>

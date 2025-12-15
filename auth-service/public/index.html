@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>auth service</title>
+    <title>Auth Service</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background-color: #f8f9fa; }
         .container { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
@@ -48,26 +48,26 @@
 <body>
 
     <div class="container">
-        <h1>reg akun</h1>
-        <p class="subtitle">bikin akun baru buat portal akademik</p>
+        <h1>Registrasi Akun</h1>
+        <p class="subtitle">Membuat akun baru untuk Portal Akademik</p>
 
         <form id="regForm" onsubmit="handleRegister(event)">
-            <label for="username">user</label>
+            <label for="username">User</label>
             <input type="text" id="username" placeholder="contoh: dentar67" required>
 
-            <label for="email">emel</label>
+            <label for="email">Email</label>
             <input type="email" id="email" placeholder="contoh: dentar@test.com" required>
 
-            <label for="password">pasword</label>
+            <label for="password">Password</label>
             <input type="password" id="password" placeholder="dentar123" required>
 
-            <button type="submit" id="btnSubmit">daftar cuy</button>
+            <button type="submit" id="btnSubmit">Daftar</button>
         </form>
 
         <div id="msgBox" class="alert"></div>
 
         <div class="footer-link">
-            dah ada akun? <a href="http://localhost:8080">lgsg login kesini wak</a>
+            Sudah ada akun? <a href="http://localhost:8080">Silahkan login kesini.</a>
         </div>
     </div>
 

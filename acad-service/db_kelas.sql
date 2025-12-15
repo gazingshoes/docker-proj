@@ -30,7 +30,7 @@ CREATE TABLE bobot_nilai (
 INSERT INTO mahasiswa (nim, nama, jurusan, angkatan) VALUES
 ('22001', 'Ahmad Fauzan', 'Sains Data', 2022),
 ('22002', 'Nisa Rahma', 'Sains Data', 2022),
-('22003', 'Dentar Ababila', 'Sains Wanita', 1967);
+('22003', 'Dentar Ababila', 'Sains Data', 2025);
 
 INSERT INTO mata_kuliah (kode_mk, nama_mk, sks) VALUES
 ('IF101', 'Pemrograman Dasar', 3),
